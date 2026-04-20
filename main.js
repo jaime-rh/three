@@ -15,7 +15,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(0, 1, 5);
+camera.position.set(0, 1, 30);
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -42,7 +42,7 @@ scene.add(directionalLight);
 const loader = new GLTFLoader();
 
 loader.load(
-  './PLANTA/scene.gltf',
+  './P_CalleReal84_2.glb',
   (gltf) => {
     const model = gltf.scene;
     scene.add(model);
