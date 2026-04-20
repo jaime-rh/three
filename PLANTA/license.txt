@@ -1,0 +1,11 @@
+Model Information:
+* title:	Piranha Plant
+* source:	https://sketchfab.com/3d-models/piranha-plant-b556a1bb686a40be93ad6801b4ab10b5
+* author:	code.narcea (https://sketchfab.com/nadiakim)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Piranha Plant" (https://sketchfab.com/3d-models/piranha-plant-b556a1bb686a40be93ad6801b4ab10b5) by code.narcea (https://sketchfab.com/nadiakim) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
