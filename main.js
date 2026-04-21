@@ -10,6 +10,8 @@ let model2;
 let modelBarrera;
 let modelBarreraSalida;
 let modelAlarma;
+let modelInterfonoSalida;
+let modelInterfonoEntrada;
 
 let model2InitialPosition = null;
 let model2InitialRotation = null;
@@ -33,6 +35,20 @@ let valorBarreraSalida = 0;
 document.getElementById("barreraSalida").addEventListener("click", () => {
   valorBarreraSalida = valorBarreraSalida === 0 ? 1 : 0;
   console.log("Valor actual de la barrera de salida:", valorBarreraSalida);
+});
+
+let valorInterfonoSalida = 0; 
+
+document.getElementById("InterfonoSalida").addEventListener("click", () => {
+  valorInterfonoSalida = valorInterfonoSalida === 0 ? 1 : 0;
+  console.log("Valor actual del interfono de salida:", valorInterfonoSalida);
+});
+
+let valorInterfonoEntrada = 0; 
+
+document.getElementById("InterfonoEntrada").addEventListener("click", () => {
+  valorInterfonoEntrada = valorInterfonoEntrada === 0 ? 1 : 0;
+  console.log("Valor actual del interfono de salida:", valorInterfonoEntrada);
 });
 
 
@@ -104,7 +120,6 @@ loader2.load(
     model2.position.set(11, -1, 0.3);
   }
 );
-
 
 
 // BARRERA ENTRADA
@@ -211,6 +226,38 @@ loaderAlarma.load(
   }
 );
 
+//INTERFONO SALIDA
+const loaderInterfonoSalida = new GLTFLoader();
+
+loaderInterfonoSalida.load(
+  './person.glb',
+  (gltf) => {
+
+    modelInterfonoSalida = gltf.scene;
+    scene.add(modelInterfonoSalida);
+
+    modelInterfonoSalida.scale.set(2, 2, 2);
+    modelInterfonoSalida.position.set(-9, 0.75, 7);
+    modelInterfonoSalida.rotation.y = -Math.PI / 2;
+  }
+);
+
+//INTERFONO ENTRADA
+const loaderInterfonoEntrada = new GLTFLoader();
+
+loaderInterfonoEntrada.load(
+  './person.glb',
+  (gltf) => {
+
+    modelInterfonoEntrada = gltf.scene;
+    scene.add(modelInterfonoEntrada);
+
+    modelInterfonoEntrada.scale.set(2, 2, 2);
+    modelInterfonoEntrada.position.set(-4, -1.4, -1);
+    modelInterfonoEntrada.rotation.y = Math.PI / 2;
+  }
+);
+
 //barrera entrada
 let barreraAngleUp = Math.PI * 5 / 12;  // 75 grados
 let barreraAngleDown = 0;
@@ -232,6 +279,22 @@ function animate() {
           modelAlarma.rotation.y += 0.06;
       } else {
           modelAlarma.visible = false;
+      }
+  }
+
+  if (modelInterfonoSalida) {
+      if (valorInterfonoSalida === 1) {
+          modelInterfonoSalida.visible = true;
+      } else {
+          modelInterfonoSalida.visible = false;
+      }
+  }
+
+  if (modelInterfonoEntrada) {
+      if (valorInterfonoEntrada === 1) {
+          modelInterfonoEntrada.visible = true;
+      } else {
+          modelInterfonoEntrada.visible = false;
       }
   }
 
