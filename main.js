@@ -91,26 +91,20 @@ loader.load(
 );
 
 //CAJERO
-const loader2 = new FBXLoader();
+const loader2 = new GLTFLoader();
 
-loader2.load('./caj.fbx', (fbx) => {
-  model2 = fbx;
-  scene.add(model2);
+loader2.load(
+  './cajequinsa.glb',
+  (gltf) => {
 
-  model2.scale.set(0.01, 0.01, 0.01); 
-  model2.position.set(11, -1, 1);
+    model2 = gltf.scene;
+    scene.add(model2);
 
-  // Guardar posición y rotación inicial
-  model2InitialPosition = model2.position.clone();
-  model2InitialRotation = model2.rotation.clone();
+    model2.scale.set(1, 1, 1);
+    model2.position.set(11, -1, 0.3);
+  }
+);
 
-  fbx.traverse((child) => {
-    if (child.isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    }
-  });
-});
 
 
 // BARRERA ENTRADA
@@ -213,9 +207,7 @@ loaderAlarma.load(
     modelAlarma.position.x -= center.x;
     modelAlarma.position.y -= center.y;
     modelAlarma.position.z -= center.z;
-
-    // Ocultarla al inicio
-    modelAlarma.visible = false;
+    
   }
 );
 
