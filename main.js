@@ -7,16 +7,33 @@ import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples
 //modelos fuera del loader
 let model1;
 let model2;
+let modelBarrera;
+let modelBarreraSalida;
+let modelAlarma;
 
 let model2InitialPosition = null;
 let model2InitialRotation = null;
 
-let valor = 0; // estado inicial
+let valor = 0; 
 
-  document.getElementById("alarma").addEventListener("click", () => {
-    valor = valor === 0 ? 1 : 0;
-    console.log("Valor actual de la alarma:", valor);
-  });
+document.getElementById("alarma").addEventListener("click", () => {
+  valor = valor === 0 ? 1 : 0;
+  console.log("Valor actual de la alarma:", valor);
+});
+
+let valorBarreraEntrada = 0; 
+
+document.getElementById("barreraEntrada").addEventListener("click", () => {
+  valorBarreraEntrada = valorBarreraEntrada === 0 ? 1 : 0;
+  console.log("Valor actual de la barrera de entrada:", valorBarreraEntrada);
+});
+
+let valorBarreraSalida = 0; 
+
+document.getElementById("barreraSalida").addEventListener("click", () => {
+  valorBarreraSalida = valorBarreraSalida === 0 ? 1 : 0;
+  console.log("Valor actual de la barrera de salida:", valorBarreraSalida);
+});
 
 
 // Escena
@@ -53,7 +70,7 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 5);
 scene.add(directionalLight);
 
-//Loader GLB/GLTF
+//Loader GLB/GLTF PLANO
 const loader = new GLTFLoader();
 
 loader.load(
@@ -73,7 +90,7 @@ loader.load(
   }
 );
 
-//Loader2
+//CAJERO
 const loader2 = new FBXLoader();
 
 loader2.load('./caj.fbx', (fbx) => {
@@ -95,17 +112,156 @@ loader2.load('./caj.fbx', (fbx) => {
   });
 });
 
+
+// BARRERA ENTRADA
+const loaderBarreraEntrada = new GLTFLoader();
+
+let barreraPivot = new THREE.Group();
+scene.add(barreraPivot);
+
+let barreraInitialRotation = new THREE.Euler();
+
+loaderBarreraEntrada.load('./bar.glb', (gltf) => {
+
+    modelBarrera = gltf.scene;
+
+    // Escalar y orientar
+    modelBarrera.scale.set(0.65, 0.65, 0.65);
+    modelBarrera.rotation.y = Math.PI / 2;
+
+    // Colocar la barrera en su sitio FINAL
+    modelBarrera.position.set(-4.6, -1, 2.4);
+
+    // Añadir temporalmente a la escena para calcular bounding box en mundo
+    scene.add(modelBarrera);
+
+    // Obtener bounding box en coordenadas MUNDO
+    const box = new THREE.Box3().setFromObject(modelBarrera);
+    const min = box.min.clone(); // esquina inferior-izquierda-trasera
+
+    // Quitar de la escena (la moveremos al pivot)
+    scene.remove(modelBarrera);
+
+    // Colocar el pivot EXACTAMENTE en la esquina del modelo
+    barreraPivot.position.copy(min);
+
+    // Añadir el modelo al pivot
+    barreraPivot.add(modelBarrera);
+
+    // Mover el modelo dentro del pivot para que la esquina quede en el origen
+    modelBarrera.position.sub(min);
+
+    // Guardar rotación inicial del pivot
+    barreraInitialRotation.copy(barreraPivot.rotation);
+});
+
+// BARRERA SALIDA
+const loaderBarreraSalida = new GLTFLoader();
+
+let barreraPivotSalida = new THREE.Group();
+scene.add(barreraPivotSalida);
+
+let barreraInitialRotationSalida = new THREE.Euler();
+
+loaderBarreraSalida.load('./bar.glb', (gltf) => {
+
+    modelBarreraSalida = gltf.scene;
+
+    // Escalar y orientar
+    modelBarreraSalida.scale.set(0.65, 0.65, 0.65);
+    modelBarreraSalida.rotation.y = Math.PI / 2;
+
+    // Colocar la barrera en su sitio FINAL
+    modelBarreraSalida.position.set(-8, -2.2, -1.2);
+
+    // Añadir temporalmente a la escena para calcular bounding box en mundo
+    scene.add(modelBarreraSalida);
+
+    // Obtener bounding box en coordenadas MUNDO
+    const box = new THREE.Box3().setFromObject(modelBarreraSalida);
+    const max = box.max.clone(); // esquina inferior-izquierda-trasera
+
+    // Quitar de la escena (la moveremos al pivot)
+    scene.remove(modelBarreraSalida);
+
+    // Colocar el pivot EXACTAMENTE en la esquina del modelo
+    barreraPivotSalida.position.copy(max);
+
+    // Añadir el modelo al pivot
+    barreraPivotSalida.add(modelBarreraSalida);
+
+    // Mover el modelo dentro del pivot para que la esquina quede en el origen
+    modelBarreraSalida.position.sub(max);
+
+    // Guardar rotación inicial del pivot
+    barreraInitialRotationSalida.copy(barreraPivotSalida.rotation);
+});
+
+//ALARMA
+const loaderAlarma = new GLTFLoader();
+
+loaderAlarma.load(
+  './alarma.glb',
+  (gltf) => {
+
+    modelAlarma = gltf.scene;
+    scene.add(modelAlarma);
+
+    modelAlarma.scale.set(0.65, 0.65, 0.65);
+    modelAlarma.position.set(12, 5, 0.3);
+
+    modelAlarma.position.x -= center.x;
+    modelAlarma.position.y -= center.y;
+    modelAlarma.position.z -= center.z;
+
+    // Ocultarla al inicio
+    modelAlarma.visible = false;
+  }
+);
+
+//barrera entrada
+let barreraAngleUp = Math.PI * 5 / 12;  // 75 grados
+let barreraAngleDown = 0;
+let barreraCurrentAngle = 0;
+let barreraSpeed = 0.1;
+
+//barrera salida
+let barreraAngleUpSalida = -Math.PI * 5 / 12;  // 75 grados
+let barreraAngleDownSalida = 0;
+let barreraCurrentAngleSalida = 0;
+let barreraSpeedSalida = 0.1;
+
 function animate() {
   requestAnimationFrame(animate);
 
-  if (model2) {
-    if (valor === 1) {
-      model2.rotation.y += 0.04;
-    } else {
-      // Restaurar posición y rotación
-      model2.position.copy(model2InitialPosition);
-      model2.rotation.copy(model2InitialRotation);
-    }
+  if (modelAlarma) {
+      if (valor === 1) {
+          modelAlarma.visible = true;
+          modelAlarma.rotation.y += 0.06;
+      } else {
+          modelAlarma.visible = false;
+      }
+  }
+
+
+  if (barreraPivot) {
+
+      let targetAngle = valorBarreraEntrada === 1 ? barreraAngleUp : barreraAngleDown;
+
+      barreraCurrentAngle += (targetAngle - barreraCurrentAngle) * barreraSpeed;
+
+      // ROTACIÓN SOBRE EL EJE Z DESDE EL EXTREMO
+      barreraPivot.rotation.z = barreraInitialRotation.z + barreraCurrentAngle;
+  }
+
+  if (barreraPivotSalida) {
+
+      let targetAngle = valorBarreraSalida === 1 ? barreraAngleUpSalida : barreraAngleDownSalida;
+
+      barreraCurrentAngleSalida += (targetAngle - barreraCurrentAngleSalida) * barreraSpeedSalida;
+
+      // ROTACIÓN SOBRE EL EJE Z DESDE EL EXTREMO
+      barreraPivotSalida.rotation.z = barreraInitialRotationSalida.z + barreraCurrentAngleSalida;
   }
 
   controls.update();
