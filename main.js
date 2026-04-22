@@ -12,6 +12,7 @@ let modelBarreraSalida;
 let modelAlarma;
 let modelInterfonoSalida;
 let modelInterfonoEntrada;
+let modelInterfonoCajero;
 
 let model2InitialPosition = null;
 let model2InitialRotation = null;
@@ -49,6 +50,13 @@ let valorInterfonoEntrada = 0;
 document.getElementById("InterfonoEntrada").addEventListener("click", () => {
   valorInterfonoEntrada = valorInterfonoEntrada === 0 ? 1 : 0;
   console.log("Valor actual del interfono de salida:", valorInterfonoEntrada);
+});
+
+let valorInterfonoCajero = 0; 
+
+document.getElementById("InterfonoCajero").addEventListener("click", () => {
+  valorInterfonoCajero = valorInterfonoCajero === 0 ? 1 : 0;
+  console.log("Valor actual del interfono cajero:", valorInterfonoCajero);
 });
 
 
@@ -230,15 +238,15 @@ loaderAlarma.load(
 const loaderInterfonoSalida = new GLTFLoader();
 
 loaderInterfonoSalida.load(
-  './person.glb',
+  './coche.glb',
   (gltf) => {
 
     modelInterfonoSalida = gltf.scene;
     scene.add(modelInterfonoSalida);
 
-    modelInterfonoSalida.scale.set(2, 2, 2);
-    modelInterfonoSalida.position.set(-9, 0.75, 7);
-    modelInterfonoSalida.rotation.y = -Math.PI / 2;
+    modelInterfonoSalida.scale.set(120, 120, 120);
+    modelInterfonoSalida.position.set(-8.8, -1.2, 8);
+    modelInterfonoSalida.rotation.y = -500;
   }
 );
 
@@ -246,15 +254,33 @@ loaderInterfonoSalida.load(
 const loaderInterfonoEntrada = new GLTFLoader();
 
 loaderInterfonoEntrada.load(
-  './person.glb',
+  './coche.glb',
   (gltf) => {
 
     modelInterfonoEntrada = gltf.scene;
     scene.add(modelInterfonoEntrada);
 
-    modelInterfonoEntrada.scale.set(2, 2, 2);
-    modelInterfonoEntrada.position.set(-4, -1.4, -1);
-    modelInterfonoEntrada.rotation.y = Math.PI / 2;
+    modelInterfonoEntrada.scale.set(120, 120, 120);
+    modelInterfonoEntrada.position.set(-4.4, -3.3, -1);
+    modelInterfonoEntrada.rotation.y = 0;
+    modelInterfonoEntrada.rotation.x = -0.3;
+  }
+);
+
+//INTERFONO CAJERO
+const loaderInterfonoCajero = new GLTFLoader();
+
+loaderInterfonoCajero.load(
+  './person.glb',
+  (gltf) => {
+
+    modelInterfonoCajero = gltf.scene;
+    scene.add(modelInterfonoCajero);
+
+    modelInterfonoCajero.scale.set(2, 2, 2);
+    modelInterfonoCajero.position.set(12, 1, 1.7);
+    modelInterfonoCajero.rotation.y = 600;
+
   }
 );
 
@@ -279,6 +305,14 @@ function animate() {
           modelAlarma.rotation.y += 0.06;
       } else {
           modelAlarma.visible = false;
+      }
+  }
+
+  if (modelInterfonoCajero) {
+      if (valorInterfonoCajero === 1) {
+          modelInterfonoCajero.visible = true;
+      } else {
+          modelInterfonoCajero.visible = false;
       }
   }
 
