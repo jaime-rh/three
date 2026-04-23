@@ -13,6 +13,8 @@ let interfonoEntrada;
 let interfonoSalida;
 let interfonoCajero;
 
+let girandoHelicopter = false;
+let tHeli = 0;
 let valorAlarma = 0; 
 
 document.getElementById("alarma").addEventListener("click", () => {
@@ -34,25 +36,47 @@ document.getElementById("barreraSalida").addEventListener("click", () => {
   console.log("Valor actual de la barrera de salida:", valorBarreraSalida);
 });
 
+let valorHelicopter = 0; 
+
+document.getElementById("helicopter").addEventListener("click", () => {
+  girandoHelicopter = true;
+  tHeli = 0;
+});
+
 let valorInterfonoSalida = 0; 
 
 document.getElementById("InterfonoSalida").addEventListener("click", () => {
   valorInterfonoSalida = valorInterfonoSalida === 0 ? 1 : 0;
   console.log("Valor actual del interfono de salida:", valorInterfonoSalida);
+  if (valorInterfonoSalida === 1) {
+      activarSalida();
+  } else {
+      desactivarSalida();
+  }
 });
 
 let valorInterfonoEntrada = 0; 
 
 document.getElementById("InterfonoEntrada").addEventListener("click", () => {
   valorInterfonoEntrada = valorInterfonoEntrada === 0 ? 1 : 0;
-  console.log("Valor actual del interfono de salida:", valorInterfonoEntrada);
+  console.log("Valor actual del interfono de entarda:", valorInterfonoEntrada);
+  if (valorInterfonoEntrada === 1) {
+      activarEntrada();
+  } else {
+      desactivarEntrada();
+  }
 });
 
 let valorInterfonoCajero = 0; 
 
 document.getElementById("InterfonoCajero").addEventListener("click", () => {
   valorInterfonoCajero = valorInterfonoCajero === 0 ? 1 : 0;
-  console.log("Valor actual del interfono cajero:", valorInterfonoCajero);
+  console.log("Valor actual del interfono del cajero:", valorInterfonoCajero);
+  if (valorInterfonoCajero === 1) {
+      activarCajero();
+  } else {
+      desactivarCajero();
+  }
 });
 
 
@@ -128,6 +152,11 @@ loaderPlano.load(
     interfonoSalida = plano.getObjectByName("cocheSalida");
     interfonoCajero = plano.getObjectByName("persona");
 
+    //estado inicial de interfonos
+    interfonoCajero.visible = false;
+    interfonoEntrada.visible = false;
+    interfonoSalida.visible = false;
+
     // estado cerrado entrada
     qClosed1.copy(barreraEntrada.quaternion);
     // estado cerrado salida
@@ -135,6 +164,7 @@ loaderPlano.load(
 
     const axis1 = new THREE.Vector3(-1, 0, 0); // eje local der
     const axis2 = new THREE.Vector3(1, 0, 0); // eje local izq
+
 
     const offset1 = new THREE.Quaternion().setFromAxisAngle(
         axis1,
@@ -146,21 +176,73 @@ loaderPlano.load(
         THREE.MathUtils.degToRad(75)
     );
 
+
     // estado abierto = cerrado + 75 grados
     qOpen1.copy(qClosed1).multiply(offset1);
     qOpen2.copy(qClosed2).multiply(offset2);
   }
 );
 
+//camara inicial
+const cameraInitialTarget = new THREE.Vector3(0, 0, 0);
+const cameraInitialPosition = new THREE.Vector3().copy(camera.position);
+//camara cajero
+const camTargetPositionCajero = new THREE.Vector3();
+const cameraOffsetCajero = new THREE.Vector3(0, 2, 5);
+//camara barrera entrada
+const camTargetPositionEntrada = new THREE.Vector3();
+const cameraOffsetEntrada = new THREE.Vector3(-2, 2, 3);
+//camara barrera salida
+const camTargetPositionSalida = new THREE.Vector3();
+const cameraOffsetSalida = new THREE.Vector3(6, 0, -3);
+
+let modoCajeroActivo = false;
+let modoEntradaActivo = false;
+let modoSalidaActivo = false;
+let volviendoACamara = false;
+
+function activarCajero() {
+    modoCajeroActivo = true;
+    controls.enabled = false;
+}
+
+function desactivarCajero() {
+    modoCajeroActivo = false;
+    volviendoACamara = true;
+}
+
+function activarEntrada() {
+    modoEntradaActivo = true;
+    controls.enabled = false;
+}
+
+function desactivarEntrada() {
+    modoEntradaActivo = false;
+    volviendoACamara = true;
+}
+
+function activarSalida() {
+    modoSalidaActivo = true;
+    controls.enabled = false;
+}
+
+function desactivarSalida() {
+    modoSalidaActivo = false;
+    volviendoACamara = true;
+}
+
+
 
 function animate() {
     requestAnimationFrame(animate);
 
-    if(valorAlarma === 0){
-        alarma.visible = false;
-    }else{
-        alarma.visible = true;
-        alarma.rotation.z += 0.06;
+    if(alarma){
+        if(valorAlarma === 0){
+            alarma.visible = false;
+        }else{
+            alarma.visible = true;
+            alarma.rotation.z += 0.06;
+        }
     }
 
     if (barreraEntrada) {
@@ -173,25 +255,100 @@ function animate() {
         barreraSalida.quaternion.slerp(target, 0.1);
     }
 
-    if(valorInterfonoCajero === 0){
-        interfonoCajero.visible = false;
-    }else{
+    if (girandoHelicopter && barreraEntrada && barreraSalida) {
+
+        tHeli += 0.05; //velocidad
+
+        const angle = Math.PI * 2 * tHeli; //360
+
+        const axisEntrada = new THREE.Vector3(0, -1, 0);
+        const axisSalida  = new THREE.Vector3(0, 1, 0);
+
+        const qSpin1 = new THREE.Quaternion().setFromAxisAngle(axisEntrada, angle);
+        const qSpin2 = new THREE.Quaternion().setFromAxisAngle(axisSalida, angle);
+
+        //usar estado actual como base
+        barreraEntrada.quaternion.multiply(qSpin1);
+        barreraSalida.quaternion.multiply(qSpin2);
+
+        if (tHeli >= 2.5) { //segundos
+            girandoHelicopter = false;
+        }
+    }
+
+   if (modoCajeroActivo) {
         interfonoCajero.visible = true;
+        camTargetPositionCajero
+            .copy(interfonoCajero.position)
+            .add(cameraOffsetCajero);
+
+        camera.position.lerp(camTargetPositionCajero, 0.05);
+        camera.lookAt(interfonoCajero.position);
+    } else if (volviendoACamara) {
+        interfonoCajero.visible = false;
+        camera.position.lerp(cameraInitialPosition, 0.15);
+        controls.target.lerp(cameraInitialTarget, 0.15);
+
+        camera.lookAt(controls.target);
+
+        const dist = camera.position.distanceTo(cameraInitialPosition);
+
+        if (dist < 0.15) {
+            volviendoACamara = false;
+            controls.enabled = true;
+        }
     }
 
-    if(valorInterfonoEntrada === 0){
-        interfonoEntrada.visible = false;
-    }else{
+    if (modoEntradaActivo) {
         interfonoEntrada.visible = true;
+        camTargetPositionEntrada
+            .copy(interfonoEntrada.position)
+            .add(cameraOffsetEntrada);
+
+        camera.position.lerp(camTargetPositionEntrada, 0.05);
+        camera.lookAt(interfonoEntrada.position);
+    } else if (volviendoACamara) {
+        interfonoEntrada.visible = false;
+        camera.position.lerp(cameraInitialPosition, 0.15);
+        controls.target.lerp(cameraInitialTarget, 0.15);
+
+        camera.lookAt(controls.target);
+
+        const dist = camera.position.distanceTo(cameraInitialPosition);
+
+        if (dist < 0.15) {
+            volviendoACamara = false;
+            controls.enabled = true;
+        }
     }
 
-    if(valorInterfonoSalida === 0){
-        interfonoSalida.visible = false;
-    }else{
+    if (modoSalidaActivo) {
         interfonoSalida.visible = true;
+        camTargetPositionSalida
+            .copy(interfonoSalida.position)
+            .add(cameraOffsetSalida);
+
+        camera.position.lerp(camTargetPositionSalida, 0.05);
+        camera.lookAt(interfonoSalida.position);
+    } else if (volviendoACamara) {
+        interfonoSalida.visible = false;
+        camera.position.lerp(cameraInitialPosition, 0.15);
+        controls.target.lerp(cameraInitialTarget, 0.15);
+
+        camera.lookAt(controls.target);
+
+        const dist = camera.position.distanceTo(cameraInitialPosition);
+
+        if (dist < 0.15) {
+            volviendoACamara = false;
+            controls.enabled = true;
+        }
     }
 
-    controls.update();
+    if (controls.enabled) {
+        controls.update();
+    }
+
     renderer.render(scene, camera);
 }
 
