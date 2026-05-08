@@ -2,17 +2,29 @@
 <html>
 <head>
   <title>Proyecto con iframe</title>
-  <style>
-    iframe {
-      width: 80vw;
-      height: 80vh;
-      border: none;
-    }
-  </style>
+  <link rel="stylesheet" href="iframe.css">
 </head>
 <body>
 
-<iframe src="index.html" allow="webgl"></iframe>
+  <div class="divBotones">
+    <button id="alarma">alarma</button>
+    <button id="barreraEntrada">barrera entrada</button>
+    <button id="barreraSalida">barrera salida</button>
+    <button id="InterfonoSalida">interfono salida</button>
+    <button id="InterfonoEntrada">interfono entrada</button>
+    <button id="InterfonoCajero">interfono cajero</button>
+    <button id="helicopter">helicopter</button>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.152/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script type="module" src="main.js"></script>
 
 </body>
 </html>

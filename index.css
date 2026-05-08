@@ -1,0 +1,96 @@
+html, body {
+    margin: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+iframe{
+    width: 93vw;
+    height: 93vh;
+    border: none;
+    display: block;
+    overflow: hidden;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+}
+
+.barras{
+    display: flex;
+    flex-direction: row;
+}
+
+.barraLateral{
+    margin: 0;
+    width: 7vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.barraSuperior{
+    width: 93vw;
+    height: 7vh;
+    background-color: rgb(48, 48, 48);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.btn-superior{
+    background-color: rgb(25, 25, 25);
+    border: none;
+    border-radius: 5px;
+    height: 40px;
+    margin-left: 5px;
+}
+.user{
+    margin-right: 10px;
+}
+.img-superior-es{
+    width: 80px;
+}
+.img-superior-user{
+    width: 170px;
+}
+
+.btn-lateral{
+    background-color: rgb(48, 48, 48);
+    border: 1px solid black;
+    height: 91.3px;
+}
+.btn-lateral:nth-child(3), .btn-lateral:nth-child(4) { 
+    background-color: rgb(128, 16, 32);
+}
+
+
+.img-lateral-logo{
+    width: 85px;
+}
+.img-lateral-navegacion{
+    width: 95px;
+}
+.img-lateral-alarmas{
+    width: 85px;
+}
+.img-lateral-alarmasCriticas{
+    width: 76px;
+}
+.img-lateral-interfonia{
+    width: 90px;
+}
+.img-lateral-axiviewer{
+    width: 75px;
+}
+.img-lateral-axipms{
+    width: 70px;
+}
+.img-lateral-control{
+    width: 66px;
+}
+.img-lateral-cerrarSesion{
+    width: 95px;
+}
+.img-lateral-salir{
+    width: 55px;
+}

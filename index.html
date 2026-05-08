@@ -2,29 +2,55 @@
 <html>
 <head>
   <title>Three.js Vanilla</title>
-  <style>
-    body { margin: 0; }
-    button { cursor: pointer; padding: 10px; }
-  </style>
+  <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
-<button id="alarma">alarma</button>
-<button id="barreraEntrada">barrera entrada</button>
-<button id="barreraSalida">barrera salida</button>
-<button id="InterfonoSalida">interfono salida</button>
-<button id="InterfonoEntrada">interfono entrada</button>
-<button id="InterfonoCajero">interfono cajero</button>
-<button id="helicopter">helicopter helicopter</button>
+  <div class="barras">
+    <div class="barraLateral">
+      <button class="btn-lateral">
+        <img src="./fotos/logo.png" alt="" class="img-lateral-logo">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/navegación.png" alt="" class="img-lateral-navegacion">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/alarmas.png" alt="" class="img-lateral-alarmas">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/alarmas_criticas.png" alt="" class="img-lateral-alarmasCriticas">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/interfonía.png" alt="" class="img-lateral-interfonia">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/axiviewer.png" alt="" class="img-lateral-axiviewer">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/axipms.png" alt="" class="img-lateral-axipms">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/control.png" alt="" class="img-lateral-control">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/cerrar_sesión.png" alt="" class="img-lateral-cerrarSesion">
+      </button>
+      <button class="btn-lateral">
+         <img src="./fotos/salir.png" alt="" class="img-lateral-salir">
+      </button>
+    </div>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.152/build/three.module.js"
-  }
-}
-</script>
-<script type="module" src="main2.js"></script>
+    <div class="barraSuperior">
+      <button class="btn-superior">
+        <img src="./fotos/es.png" alt="" class="img-superior-es">
+      </button>
+      <div class="user">
+        <img src="./fotos/user.png" alt="" class="img-superior-user">
+      </div>
+    </div>
+  </div>
+
+  <iframe src="iframe.html" allow="webgl"></iframe>
 
 </body>
 </html>

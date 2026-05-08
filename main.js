@@ -5,23 +5,22 @@ import { OBJLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/controls/OrbitControls.js';
 
 //modelos fuera del loader
-let model1;
-let model2;
-let modelBarrera;
-let modelBarreraSalida;
-let modelAlarma;
-let modelInterfonoSalida;
-let modelInterfonoEntrada;
-let modelInterfonoCajero;
+let plano;
+let barreraEntrada;
+let barreraSalida;
+let alarma;
+let interfonoEntrada;
+let interfonoSalida;
+let interfonoCajero;
+let luz;
 
-let model2InitialPosition = null;
-let model2InitialRotation = null;
-
-let valor = 0; 
+let girandoHelicopter = false;
+let tHeli = 0;
+let valorAlarma = 0; 
 
 document.getElementById("alarma").addEventListener("click", () => {
-  valor = valor === 0 ? 1 : 0;
-  console.log("Valor actual de la alarma:", valor);
+  valorAlarma = valorAlarma === 0 ? 1 : 0;
+  console.log("Valor actual de la alarma:", valorAlarma);
 });
 
 let valorBarreraEntrada = 0; 
@@ -38,31 +37,53 @@ document.getElementById("barreraSalida").addEventListener("click", () => {
   console.log("Valor actual de la barrera de salida:", valorBarreraSalida);
 });
 
+let valorHelicopter = 0; 
+
+document.getElementById("helicopter").addEventListener("click", () => {
+  girandoHelicopter = true;
+  tHeli = 0;
+});
+
 let valorInterfonoSalida = 0; 
 
 document.getElementById("InterfonoSalida").addEventListener("click", () => {
   valorInterfonoSalida = valorInterfonoSalida === 0 ? 1 : 0;
   console.log("Valor actual del interfono de salida:", valorInterfonoSalida);
+  if (valorInterfonoSalida === 1) {
+      activarSalida();
+  } else {
+      desactivarSalida();
+  }
 });
 
 let valorInterfonoEntrada = 0; 
 
 document.getElementById("InterfonoEntrada").addEventListener("click", () => {
   valorInterfonoEntrada = valorInterfonoEntrada === 0 ? 1 : 0;
-  console.log("Valor actual del interfono de salida:", valorInterfonoEntrada);
+  console.log("Valor actual del interfono de entarda:", valorInterfonoEntrada);
+  if (valorInterfonoEntrada === 1) {
+      activarEntrada();
+  } else {
+      desactivarEntrada();
+  }
 });
 
 let valorInterfonoCajero = 0; 
 
 document.getElementById("InterfonoCajero").addEventListener("click", () => {
   valorInterfonoCajero = valorInterfonoCajero === 0 ? 1 : 0;
-  console.log("Valor actual del interfono cajero:", valorInterfonoCajero);
+  console.log("Valor actual del interfono del cajero:", valorInterfonoCajero);
+  if (valorInterfonoCajero === 1) {
+      activarCajero();
+  } else {
+      desactivarCajero();
+  }
 });
 
 
 // Escena
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222222);
+scene.background = new THREE.Color(0x00000);
 
 // Cámara
 const camera = new THREE.PerspectiveCamera(
@@ -94,309 +115,246 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 5);
 scene.add(directionalLight);
 
-//Loader GLB/GLTF PLANO
-const loader = new GLTFLoader();
 
-loader.load(
-  './P_CalleReal84_2.glb',
+
+//Loader GLB/GLTF PLANO
+const loaderPlano = new GLTFLoader();
+//entrada
+const qClosed1 = new THREE.Quaternion();
+const qOpen1 = new THREE.Quaternion();
+//salida
+const qClosed2 = new THREE.Quaternion();
+const qOpen2 = new THREE.Quaternion();
+
+loaderPlano.load(
+  './planoPrueba.glb',
   (gltf) => {
 
-    model1 = gltf.scene;
-    scene.add(model1);
+    plano = gltf.scene;
+    scene.add(plano);
 
     // centrar modelo
-    const box = new THREE.Box3().setFromObject(model1);
+    const box = new THREE.Box3().setFromObject(plano);
     const center = box.getCenter(new THREE.Vector3());
 
-    model1.position.x -= center.x;
-    model1.position.y -= center.y;
-    model1.position.z -= center.z;
+    plano.position.x -= center.x;
+    plano.position.y -= center.y;
+    plano.position.z -= center.z;
+
+    //nombre de nodos por consola
+    plano.traverse((obj) => {
+        console.log(obj.name, obj.type);
+    });
+
+    barreraEntrada = plano.getObjectByName("BarreraEntarda");
+    barreraSalida = plano.getObjectByName("BarreraSalida");
+    alarma = plano.getObjectByName("alarma");
+    interfonoEntrada = plano.getObjectByName("cocheEntrada");
+    interfonoSalida = plano.getObjectByName("cocheSalida");
+    interfonoCajero = plano.getObjectByName("persona");
+
+    //estado inicial de interfonos
+    interfonoCajero.visible = false;
+    interfonoEntrada.visible = false;
+    interfonoSalida.visible = false;
+
+    // estado cerrado entrada
+    qClosed1.copy(barreraEntrada.quaternion);
+    // estado cerrado salida
+    qClosed2.copy(barreraSalida.quaternion);
+
+    const axis1 = new THREE.Vector3(-1, 0, 0); // eje local der
+    const axis2 = new THREE.Vector3(1, 0, 0); // eje local izq
+
+
+    const offset1 = new THREE.Quaternion().setFromAxisAngle(
+        axis1,
+        THREE.MathUtils.degToRad(75)
+    );
+
+    const offset2 = new THREE.Quaternion().setFromAxisAngle(
+        axis2,
+        THREE.MathUtils.degToRad(75)
+    );
+
+
+    // estado abierto = cerrado + 75 grados
+    qOpen1.copy(qClosed1).multiply(offset1);
+    qOpen2.copy(qClosed2).multiply(offset2);
   }
 );
 
-//CAJERO
-const loader2 = new GLTFLoader();
+//camara inicial
+const cameraInitialTarget = new THREE.Vector3(0, 0, 0);
+const cameraInitialPosition = new THREE.Vector3().copy(camera.position);
+//camara cajero
+const camTargetPositionCajero = new THREE.Vector3();
+const cameraOffsetCajero = new THREE.Vector3(0, 2, 5);
+//camara barrera entrada
+const camTargetPositionEntrada = new THREE.Vector3();
+const cameraOffsetEntrada = new THREE.Vector3(-2, 2, 3);
+//camara barrera salida
+const camTargetPositionSalida = new THREE.Vector3();
+const cameraOffsetSalida = new THREE.Vector3(6, 0, -3);
 
-loader2.load(
-  './cajequinsa.glb',
-  (gltf) => {
+let modoCajeroActivo = false;
+let modoEntradaActivo = false;
+let modoSalidaActivo = false;
+let volviendoACamara = false;
 
-    model2 = gltf.scene;
-    scene.add(model2);
+function activarCajero() {
+    modoCajeroActivo = true;
+    controls.enabled = false;
+}
 
-    model2.scale.set(1, 1, 1);
-    model2.position.set(11, -1, 0.3);
-  }
-);
+function desactivarCajero() {
+    modoCajeroActivo = false;
+    volviendoACamara = true;
+}
+
+function activarEntrada() {
+    modoEntradaActivo = true;
+    controls.enabled = false;
+}
+
+function desactivarEntrada() {
+    modoEntradaActivo = false;
+    volviendoACamara = true;
+}
+
+function activarSalida() {
+    modoSalidaActivo = true;
+    controls.enabled = false;
+}
+
+function desactivarSalida() {
+    modoSalidaActivo = false;
+    volviendoACamara = true;
+}
 
 
-// BARRERA ENTRADA
-const loaderBarreraEntrada = new GLTFLoader();
-
-let barreraPivot = new THREE.Group();
-scene.add(barreraPivot);
-
-let barreraInitialRotation = new THREE.Euler();
-
-loaderBarreraEntrada.load('./bar.glb', (gltf) => {
-
-    modelBarrera = gltf.scene;
-
-    // Escalar y orientar
-    modelBarrera.scale.set(0.65, 0.65, 0.65);
-    modelBarrera.rotation.y = Math.PI / 2;
-
-    // Colocar la barrera en su sitio FINAL
-    modelBarrera.position.set(-4.6, -1, 2.4);
-
-    // Añadir temporalmente a la escena para calcular bounding box en mundo
-    scene.add(modelBarrera);
-
-    // Obtener bounding box en coordenadas MUNDO
-    const box = new THREE.Box3().setFromObject(modelBarrera);
-    const min = box.min.clone(); // esquina inferior-izquierda-trasera
-
-    // Quitar de la escena (la moveremos al pivot)
-    scene.remove(modelBarrera);
-
-    // Colocar el pivot EXACTAMENTE en la esquina del modelo
-    barreraPivot.position.copy(min);
-
-    // Añadir el modelo al pivot
-    barreraPivot.add(modelBarrera);
-
-    // Mover el modelo dentro del pivot para que la esquina quede en el origen
-    modelBarrera.position.sub(min);
-
-    // Guardar rotación inicial del pivot
-    barreraInitialRotation.copy(barreraPivot.rotation);
-});
-
-// BARRERA SALIDA
-const loaderBarreraSalida = new GLTFLoader();
-
-let barreraPivotSalida = new THREE.Group();
-scene.add(barreraPivotSalida);
-
-let barreraInitialRotationSalida = new THREE.Euler();
-
-loaderBarreraSalida.load('./bar.glb', (gltf) => {
-
-    modelBarreraSalida = gltf.scene;
-
-    // Escalar y orientar
-    modelBarreraSalida.scale.set(0.65, 0.65, 0.65);
-    modelBarreraSalida.rotation.y = Math.PI / 2;
-
-    // Colocar la barrera en su sitio FINAL
-    modelBarreraSalida.position.set(-8, -2.2, -1.2);
-
-    // Añadir temporalmente a la escena para calcular bounding box en mundo
-    scene.add(modelBarreraSalida);
-
-    // Obtener bounding box en coordenadas MUNDO
-    const box = new THREE.Box3().setFromObject(modelBarreraSalida);
-    const max = box.max.clone(); // esquina inferior-izquierda-trasera
-
-    // Quitar de la escena (la moveremos al pivot)
-    scene.remove(modelBarreraSalida);
-
-    // Colocar el pivot EXACTAMENTE en la esquina del modelo
-    barreraPivotSalida.position.copy(max);
-
-    // Añadir el modelo al pivot
-    barreraPivotSalida.add(modelBarreraSalida);
-
-    // Mover el modelo dentro del pivot para que la esquina quede en el origen
-    modelBarreraSalida.position.sub(max);
-
-    // Guardar rotación inicial del pivot
-    barreraInitialRotationSalida.copy(barreraPivotSalida.rotation);
-});
-
-//ALARMA
-const loaderAlarma = new GLTFLoader();
-
-loaderAlarma.load(
-  './alarma.glb',
-  (gltf) => {
-
-    modelAlarma = gltf.scene;
-    scene.add(modelAlarma);
-
-    modelAlarma.scale.set(0.65, 0.65, 0.65);
-    modelAlarma.position.set(12, 5, 0.3);
-
-    modelAlarma.position.x -= center.x;
-    modelAlarma.position.y -= center.y;
-    modelAlarma.position.z -= center.z;
-    
-  }
-);
-
-//INTERFONO SALIDA
-const loaderInterfonoSalida = new GLTFLoader();
-
-loaderInterfonoSalida.load(
-  './coche.glb',
-  (gltf) => {
-
-    modelInterfonoSalida = gltf.scene;
-    scene.add(modelInterfonoSalida);
-
-    modelInterfonoSalida.scale.set(120, 120, 120);
-    modelInterfonoSalida.position.set(-8.8, -1.2, 8);
-    modelInterfonoSalida.rotation.y = -500;
-  }
-);
-
-//INTERFONO ENTRADA
-const loaderInterfonoEntrada = new GLTFLoader();
-
-loaderInterfonoEntrada.load(
-  './coche.glb',
-  (gltf) => {
-
-    modelInterfonoEntrada = gltf.scene;
-    scene.add(modelInterfonoEntrada);
-
-    modelInterfonoEntrada.scale.set(120, 120, 120);
-    modelInterfonoEntrada.position.set(-4.4, -3.3, -1);
-    modelInterfonoEntrada.rotation.y = 0;
-    modelInterfonoEntrada.rotation.x = -0.3;
-  }
-);
-
-//INTERFONO CAJERO
-const loaderInterfonoCajero = new GLTFLoader();
-
-loaderInterfonoCajero.load(
-  './person.glb',
-  (gltf) => {
-
-    modelInterfonoCajero = gltf.scene;
-    scene.add(modelInterfonoCajero);
-
-    modelInterfonoCajero.scale.set(2, 2, 2);
-    modelInterfonoCajero.position.set(12, 1, 1.7);
-    modelInterfonoCajero.rotation.y = 600;
-
-  }
-);
-
-//barrera entrada
-let barreraAngleUp = Math.PI * 5 / 12;  // 75 grados
-let barreraAngleDown = 0;
-let barreraCurrentAngle = 0;
-let barreraSpeed = 0.1;
-
-//barrera salida
-let barreraAngleUpSalida = -Math.PI * 5 / 12;  // 75 grados
-let barreraAngleDownSalida = 0;
-let barreraCurrentAngleSalida = 0;
-let barreraSpeedSalida = 0.1;
 
 function animate() {
-  requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
 
-  if (modelAlarma) {
-      if (valor === 1) {
-          modelAlarma.visible = true;
-          modelAlarma.rotation.y += 0.06;
-      } else {
-          modelAlarma.visible = false;
-      }
-  }
+    if(alarma){
+        if(valorAlarma === 0){
+            alarma.visible = false;
+        }else{
+            alarma.visible = true;
+            alarma.rotation.z += 0.06;
+        }
+    }
 
-  if (modelInterfonoCajero) {
-      if (valorInterfonoCajero === 1) {
-          modelInterfonoCajero.visible = true;
-      } else {
-          modelInterfonoCajero.visible = false;
-      }
-  }
+    if (barreraEntrada) {
+        const target = valorBarreraEntrada === 1 ? qOpen1 : qClosed1;
+        barreraEntrada.quaternion.slerp(target, 0.1);
+    }
 
-  if (modelInterfonoSalida) {
-      if (valorInterfonoSalida === 1) {
-          modelInterfonoSalida.visible = true;
-      } else {
-          modelInterfonoSalida.visible = false;
-      }
-  }
+    if (barreraSalida) {
+        const target = valorBarreraSalida === 1 ? qOpen2 : qClosed2;
+        barreraSalida.quaternion.slerp(target, 0.1);
+    }
 
-  if (modelInterfonoEntrada) {
-      if (valorInterfonoEntrada === 1) {
-          modelInterfonoEntrada.visible = true;
-      } else {
-          modelInterfonoEntrada.visible = false;
-      }
-  }
+    if (girandoHelicopter && barreraEntrada && barreraSalida) {
 
+        tHeli += 0.05; //velocidad
 
-  if (barreraPivot) {
+        const angle = Math.PI * 2 * tHeli; //360
 
-      let targetAngle = valorBarreraEntrada === 1 ? barreraAngleUp : barreraAngleDown;
+        const axisEntrada = new THREE.Vector3(0, -1, 0);
+        const axisSalida  = new THREE.Vector3(0, 1, 0);
 
-      barreraCurrentAngle += (targetAngle - barreraCurrentAngle) * barreraSpeed;
+        const qSpin1 = new THREE.Quaternion().setFromAxisAngle(axisEntrada, angle);
+        const qSpin2 = new THREE.Quaternion().setFromAxisAngle(axisSalida, angle);
 
-      // ROTACIÓN SOBRE EL EJE Z DESDE EL EXTREMO
-      barreraPivot.rotation.z = barreraInitialRotation.z + barreraCurrentAngle;
-  }
+        //usar estado actual como base
+        barreraEntrada.quaternion.multiply(qSpin1);
+        barreraSalida.quaternion.multiply(qSpin2);
 
-  if (barreraPivotSalida) {
+        if (tHeli >= 2.5) { //segundos
+            girandoHelicopter = false;
+        }
+    }
 
-      let targetAngle = valorBarreraSalida === 1 ? barreraAngleUpSalida : barreraAngleDownSalida;
+   if (modoCajeroActivo) {
+        interfonoCajero.visible = true;
+        camTargetPositionCajero
+            .copy(interfonoCajero.position)
+            .add(cameraOffsetCajero);
 
-      barreraCurrentAngleSalida += (targetAngle - barreraCurrentAngleSalida) * barreraSpeedSalida;
+        camera.position.lerp(camTargetPositionCajero, 0.05);
+        camera.lookAt(interfonoCajero.position);
+    } else if (volviendoACamara) {
+        interfonoCajero.visible = false;
+        camera.position.lerp(cameraInitialPosition, 0.15);
+        controls.target.lerp(cameraInitialTarget, 0.15);
 
-      // ROTACIÓN SOBRE EL EJE Z DESDE EL EXTREMO
-      barreraPivotSalida.rotation.z = barreraInitialRotationSalida.z + barreraCurrentAngleSalida;
-  }
+        camera.lookAt(controls.target);
 
-  controls.update();
-  renderer.render(scene, camera);
+        const dist = camera.position.distanceTo(cameraInitialPosition);
+
+        if (dist < 0.15) {
+            volviendoACamara = false;
+            controls.enabled = true;
+        }
+    }
+
+    if (modoEntradaActivo) {
+        interfonoEntrada.visible = true;
+        camTargetPositionEntrada
+            .copy(interfonoEntrada.position)
+            .add(cameraOffsetEntrada);
+
+        camera.position.lerp(camTargetPositionEntrada, 0.05);
+        camera.lookAt(interfonoEntrada.position);
+    } else if (volviendoACamara) {
+        interfonoEntrada.visible = false;
+        camera.position.lerp(cameraInitialPosition, 0.15);
+        controls.target.lerp(cameraInitialTarget, 0.15);
+
+        camera.lookAt(controls.target);
+
+        const dist = camera.position.distanceTo(cameraInitialPosition);
+
+        if (dist < 0.15) {
+            volviendoACamara = false;
+            controls.enabled = true;
+        }
+    }
+
+    if (modoSalidaActivo) {
+        interfonoSalida.visible = true;
+        camTargetPositionSalida
+            .copy(interfonoSalida.position)
+            .add(cameraOffsetSalida);
+
+        camera.position.lerp(camTargetPositionSalida, 0.05);
+        camera.lookAt(interfonoSalida.position);
+    } else if (volviendoACamara) {
+        interfonoSalida.visible = false;
+        camera.position.lerp(cameraInitialPosition, 0.15);
+        controls.target.lerp(cameraInitialTarget, 0.15);
+
+        camera.lookAt(controls.target);
+
+        const dist = camera.position.distanceTo(cameraInitialPosition);
+
+        if (dist < 0.15) {
+            volviendoACamara = false;
+            controls.enabled = true;
+        }
+    }
+
+    if (controls.enabled) {
+        controls.update();
+    }
+
+    renderer.render(scene, camera);
 }
 
 animate();
 
-/*
-
-// Loader FBX
-const loader = new FBXLoader();
-
-loader.load('./caj.fbx', (fbx) => {
-  scene.add(fbx);
-
-  // Ajustes típicos
-  fbx.scale.set(0.01, 0.01, 0.01); 
-  fbx.position.set(0, 0, 0);
-
-  // Opcional: sombras
-  fbx.traverse((child) => {
-    if (child.isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    }
-  });
-});
-
-// Loader OBJ
-const loader = new OBJLoader();
-
-loader.load('./Cajero.obj', (obj) => {
-
-  // Material básico (OBJ no siempre trae materiales bien)
-  obj.traverse((child) => {
-    if (child.isMesh) {
-      child.material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
-    }
-  });
-
-  obj.scale.set(1, 1, 1);
-  scene.add(obj);
-});
-
-*/
 
 // Resize
 window.addEventListener('resize', () => {
@@ -404,15 +362,3 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-/* Animación
-function animate() {
-  requestAnimationFrame(animate);
-
-  controls.update(); // 🔴 obligatorio si usas damping
-
-  renderer.render(scene, camera);
-}
-
-animate();
-*/
