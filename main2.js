@@ -3,7 +3,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples/js
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/loaders/FBXLoader.js';
 import { OBJLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/controls/OrbitControls.js';
-//sisisi
+
 //modelos fuera del loader
 let plano;
 let barreraEntrada;
@@ -12,6 +12,7 @@ let alarma;
 let interfonoEntrada;
 let interfonoSalida;
 let interfonoCajero;
+let luz;
 
 let girandoHelicopter = false;
 let tHeli = 0;
@@ -126,7 +127,7 @@ const qClosed2 = new THREE.Quaternion();
 const qOpen2 = new THREE.Quaternion();
 
 loaderPlano.load(
-  './planoNodos.glb',
+  './planoPrueba.glb',
   (gltf) => {
 
     plano = gltf.scene;
@@ -140,7 +141,7 @@ loaderPlano.load(
     plano.position.y -= center.y;
     plano.position.z -= center.z;
 
-    //nombre de nosos por consola
+    //nombre de nodos por consola
     plano.traverse((obj) => {
         console.log(obj.name, obj.type);
     });
