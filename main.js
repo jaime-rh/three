@@ -6,6 +6,7 @@ import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152/examples
 
 //modelos fuera del loader
 let plano;
+let plano2;
 let barreraEntrada;
 let barreraSalida;
 let alarma;
@@ -80,6 +81,20 @@ document.getElementById("InterfonoCajero").addEventListener("click", () => {
   }
 });
 
+window.addEventListener("message", (event) => {
+
+    const data = event.data;
+
+    if (data === "nivel1") {
+        if (plano) plano.visible = true;
+        if (plano2) plano2.visible = false;
+    }
+
+    if (data === "nivel2") {
+        if (plano) plano.visible = false;
+        if (plano2) plano2.visible = true;
+    }
+});
 
 // Escena
 const scene = new THREE.Scene();
@@ -127,7 +142,7 @@ const qClosed2 = new THREE.Quaternion();
 const qOpen2 = new THREE.Quaternion();
 
 loaderPlano.load(
-  './planoPrueba.glb',
+  './planoNodos-1.glb',
   (gltf) => {
 
     plano = gltf.scene;
@@ -184,6 +199,26 @@ loaderPlano.load(
   }
 );
 
+loaderPlano.load(
+  './planoNodos-2.glb',
+  (gltf) => {
+
+    plano2 = gltf.scene;
+    scene.add(plano2);
+
+    // centrar modelo
+    const box = new THREE.Box3().setFromObject(plano2);
+    const center = box.getCenter(new THREE.Vector3());
+
+    plano2.position.x -= center.x;
+    plano2.position.y -= center.y;
+    plano2.position.z -= center.z;
+
+    // oculto al iniciar
+    plano2.visible = false;
+});
+
+
 //camara inicial
 const cameraInitialTarget = new THREE.Vector3(0, 0, 0);
 const cameraInitialPosition = new THREE.Vector3().copy(camera.position);
@@ -232,18 +267,26 @@ function desactivarSalida() {
     volviendoACamara = true;
 }
 
-
+let alarmaAnterior = 0;
 
 function animate() {
     requestAnimationFrame(animate);
 
     if(alarma){
-        if(valorAlarma === 0){
-            alarma.visible = false;
-        }else{
+        if (valorAlarma === 1) {
+
             alarma.visible = true;
             alarma.rotation.z += 0.06;
+
+            if (alarmaAnterior === 0) {
+                if (plano) plano.visible = true;
+                if (plano2) plano2.visible = false;
+            }
+
+        } else {
+            alarma.visible = false;
         }
+        alarmaAnterior = valorAlarma;
     }
 
     if (barreraEntrada) {
@@ -285,6 +328,10 @@ function animate() {
 
         camera.position.lerp(camTargetPositionCajero, 0.05);
         camera.lookAt(interfonoCajero.position);
+
+        if (plano) plano.visible = true;
+        if (plano2) plano2.visible = false;
+
     } else if (volviendoACamara) {
         interfonoCajero.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);
@@ -308,6 +355,9 @@ function animate() {
 
         camera.position.lerp(camTargetPositionEntrada, 0.05);
         camera.lookAt(interfonoEntrada.position);
+
+        if (plano) plano.visible = true;
+        if (plano2) plano2.visible = false;
     } else if (volviendoACamara) {
         interfonoEntrada.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);
@@ -331,6 +381,9 @@ function animate() {
 
         camera.position.lerp(camTargetPositionSalida, 0.05);
         camera.lookAt(interfonoSalida.position);
+
+        if (plano) plano.visible = true;
+        if (plano2) plano2.visible = false;
     } else if (volviendoACamara) {
         interfonoSalida.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);

@@ -3,6 +3,7 @@
 <head>
   <title>Three.js Vanilla</title>
   <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -11,9 +12,74 @@
       <button class="btn-lateral">
         <img src="./fotos/logo.png" alt="" class="img-lateral-logo">
       </button>
-      <button class="btn-lateral">
+      <button class="btn-lateral" id="btnNavegacion">
          <img src="./fotos/navegación.png" alt="" class="img-lateral-navegacion">
       </button>
+
+            <div class="panelNavegacion" id="panelNavegacion">
+
+               <div class="headerNav">
+                  NAVEGACIÓN
+               </div>
+
+               <!-- NIVEL 1 -->
+               <div class="item">
+
+                  <div class="navTitulo desplegable">
+                     <i class="fa-solid fa-angle-right icono-flecha"></i><span>España</span>
+                     <div class="contador">1</div>
+                  </div>
+
+                  <div class="contenido">
+
+                     <!-- NIVEL 2 -->
+                     <div class="item">
+
+                        <div class="navTitulo desplegable nivel2">
+                            <i class="fa-solid fa-angle-right icono-flecha"></i><span>Galicia</span>
+                           <div class="contador">1</div>
+                        </div>
+
+                        <div class="contenido">
+
+                           <!-- NIVEL 3 -->
+                           <div class="item">
+
+                              <div class="navTitulo desplegable nivel3">
+                               <i class="fa-solid fa-angle-right icono-flecha"></i><span>A Coruña</span>
+                              <div class="contador">1</div>
+                              </div>
+
+                              <div class="contenido">
+
+                                 <!-- NIVEL 4 -->
+                                 <div class="item">
+
+                                    <div class="navTitulo desplegable nivel4">
+                                        <i class="fa-solid fa-angle-right icono-flecha"></i><span>Plaza Vigo</span>
+                                    </div>
+
+                                    <div class="contenido">
+                                       <div class="camaras">
+                                             <button id="btnNivel1">
+                                                <img src="./fotos/planos.png" alt="" class="img-plano">
+                                                Nivel -1
+                                             </button>
+                                             <button id="btnNivel2">
+                                                <img src="./fotos/planos.png" alt="" class="img-plano">
+                                                Nivel -2
+                                             </button>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
       <button class="btn-lateral">
          <img src="./fotos/alarmas.png" alt="" class="img-lateral-alarmas">
       </button>
@@ -51,6 +117,55 @@
   </div>
 
   <iframe src="iframe.html" allow="webgl"></iframe>
+
+  <script>
+
+      // ABRIR PANEL LATERAL
+      const btnNavegacion = document.getElementById("btnNavegacion");
+      const panelNavegacion = document.getElementById("panelNavegacion");
+
+      btnNavegacion.addEventListener("click", () => {
+         panelNavegacion.classList.toggle("activo");
+      });
+
+
+      // DESPLEGABLES
+      const desplegables = document.querySelectorAll(".desplegable");
+
+      desplegables.forEach((desplegable) => {
+         desplegable.addEventListener("click", () => {
+            const item = desplegable.parentElement;
+            const contenido = item.querySelector(".contenido");
+
+            if (contenido) {
+                  contenido.classList.toggle("abierto");
+                  // Ahora sí encontrará ".icono-flecha"
+                  const icono = desplegable.querySelector(".icono-flecha");
+
+                  if (icono) {
+                     if (contenido.classList.contains("abierto")) {
+                        // Cambiamos de derecha a abajo
+                        icono.classList.replace("fa-angle-right", "fa-angle-down");
+                     } else {
+                        // Cambiamos de abajo a derecha
+                        icono.classList.replace("fa-angle-down", "fa-angle-right");
+                     }
+                  }
+            }
+         });
+      });
+
+      const iframe = document.querySelector("iframe");
+
+      document.getElementById("btnNivel1").addEventListener("click", () => {
+         iframe.contentWindow.postMessage("nivel1", "*");
+      });
+
+      document.getElementById("btnNivel2").addEventListener("click", () => {
+         iframe.contentWindow.postMessage("nivel2", "*");
+      });
+
+   </script>
 
 </body>
 </html>
