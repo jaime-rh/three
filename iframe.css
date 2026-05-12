@@ -7,8 +7,20 @@ html, body{
   top: 10px;
   left: 10px;
   z-index: 10;
-
   display: flex;
   flex-direction: row;
   gap: 10px;
+}
+
+.divBotones button{
+  cursor: pointer;
+  padding: 10px;
+  background-color: rgb(25, 25, 25);
+  border: none;
+  border-radius: 3px;
+  color: white;
+}
+
+.divBotones button:hover{
+  background-color: rgb(39, 39, 39);
 }
