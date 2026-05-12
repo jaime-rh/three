@@ -47,11 +47,9 @@ iframe{
 .user{
     margin-right: 10px;
 }
-.img-superior-es{
-    width: 80px;
-}
-.img-superior-user{
-    width: 170px;
+.img-superior-nivel{
+    width: 400px;
+    margin-left: 10px;
 }
 
 .btn-lateral{
@@ -115,10 +113,41 @@ iframe{
 }
 
 .headerNav{
-    padding:20px;
+    padding:10px;
     border-bottom:1px solid #333;
-    color:#777;
-    font-style:italic;
+    background-color: rgb(80, 80, 80);
+    margin-top: 3px;
+    margin-bottom: 3px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.headerNav input{
+    color: rgb(209, 209, 208);
+    font-style: italic;
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+.headerNav input:focus{
+    border: none;
+    background-color: transparent;
+    color: rgb(209, 209, 208);
+}
+.headerNav input::placeholder{
+    color: rgb(209, 209, 208);
+}
+
+.img-buscador{
+    width: 25px;
+    margin-right: 25px;
+}
+.img-buscador-recargar{
+    width: 25px;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 10px;
 }
 
 .navTitulo{

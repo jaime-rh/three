@@ -14,6 +14,7 @@ let interfonoEntrada;
 let interfonoSalida;
 let interfonoCajero;
 let luz;
+let planoActual = 1;
 
 let girandoHelicopter = false;
 let tHeli = 0;
@@ -95,6 +96,23 @@ window.addEventListener("message", (event) => {
         if (plano2) plano2.visible = true;
     }
 });
+
+function setPlano(nivel) {
+    planoActual = nivel;
+
+    if (nivel === 1) {
+        if (plano) plano.visible = true;
+        if (plano2) plano2.visible = false;
+    }
+
+    if (nivel === 2) {
+        if (plano) plano.visible = false;
+        if (plano2) plano2.visible = true;
+    }
+
+    // Esto avisa a la barra superior que debe cambiar la imagen
+    window.parent.postMessage({ type: "CAMBIO_NIVEL", nivel: nivel }, "*");
+}
 
 // Escena
 const scene = new THREE.Scene();
@@ -279,8 +297,7 @@ function animate() {
             alarma.rotation.z += 0.06;
 
             if (alarmaAnterior === 0) {
-                if (plano) plano.visible = true;
-                if (plano2) plano2.visible = false;
+                setPlano(1);
             }
 
         } else {
@@ -329,8 +346,7 @@ function animate() {
         camera.position.lerp(camTargetPositionCajero, 0.05);
         camera.lookAt(interfonoCajero.position);
 
-        if (plano) plano.visible = true;
-        if (plano2) plano2.visible = false;
+        setPlano(1);
 
     } else if (volviendoACamara) {
         interfonoCajero.visible = false;
@@ -356,8 +372,8 @@ function animate() {
         camera.position.lerp(camTargetPositionEntrada, 0.05);
         camera.lookAt(interfonoEntrada.position);
 
-        if (plano) plano.visible = true;
-        if (plano2) plano2.visible = false;
+        setPlano(1);
+
     } else if (volviendoACamara) {
         interfonoEntrada.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);
@@ -382,8 +398,8 @@ function animate() {
         camera.position.lerp(camTargetPositionSalida, 0.05);
         camera.lookAt(interfonoSalida.position);
 
-        if (plano) plano.visible = true;
-        if (plano2) plano2.visible = false;
+        setPlano(1);
+
     } else if (volviendoACamara) {
         interfonoSalida.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);

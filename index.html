@@ -19,7 +19,9 @@
             <div class="panelNavegacion" id="panelNavegacion">
 
                <div class="headerNav">
-                  NAVEGACIÓN
+                  <img src="./fotos/buscador.png" alt="" class="img-buscador">
+                  <input type="text" id="buscador" placeholder="NAVEGACIÓN">
+                  <img src="./fotos/buscador_recargar.png" alt="" class="img-buscador-recargar">
                </div>
 
                <!-- NIVEL 1 -->
@@ -56,7 +58,7 @@
                                  <div class="item">
 
                                     <div class="navTitulo desplegable nivel4">
-                                        <i class="fa-solid fa-angle-right icono-flecha"></i><span>Plaza Vigo</span>
+                                        <i class="fa-solid fa-angle-right icono-flecha"></i><span>Plaza de Portugal</span>
                                     </div>
 
                                     <div class="contenido">
@@ -107,9 +109,9 @@
     </div>
 
     <div class="barraSuperior">
-      <button class="btn-superior">
-        <img src="./fotos/es.png" alt="" class="img-superior-es">
-      </button>
+      <div class="user">
+        <img src="./fotos/nivel1.png" alt="" class="img-superior-nivel">
+      </div>
       <div class="user">
         <img src="./fotos/user.png" alt="" class="img-superior-user">
       </div>
@@ -155,14 +157,27 @@
          });
       });
 
+      const imgNivelSuperior = document.querySelector(".user .img-superior-nivel");
       const iframe = document.querySelector("iframe");
+
+      window.addEventListener("message", (event) => {
+         if (event.data && event.data.type === "CAMBIO_NIVEL") {
+            const nivel = event.data.nivel;
+            if (imgNivelSuperior) {
+                  imgNivelSuperior.src = `./fotos/nivel${nivel}.png`;
+            }
+         }
+      });
 
       document.getElementById("btnNivel1").addEventListener("click", () => {
          iframe.contentWindow.postMessage("nivel1", "*");
+      
+         if (imgNivelSuperior) imgNivelSuperior.src = "./fotos/nivel1.png";
       });
 
       document.getElementById("btnNivel2").addEventListener("click", () => {
          iframe.contentWindow.postMessage("nivel2", "*");
+         if (imgNivelSuperior) imgNivelSuperior.src = "./fotos/nivel2.png";
       });
 
    </script>
