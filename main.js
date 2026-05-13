@@ -20,6 +20,201 @@ let girandoHelicopter = false;
 let tHeli = 0;
 let valorAlarma = 0; 
 
+let plano1Cargado = false;
+let plano2Cargado = false;
+
+let cargandoPlano = false;
+
+
+function cargarPlano(nivel) {
+
+    if (cargandoPlano) return;
+
+    cargandoPlano = true;
+
+    // liberar plano contrario
+    if (nivel === 1 && plano2) {
+        destruirPlano(plano2);
+        plano2 = null;
+        plano2Cargado = false;
+    }
+
+    if (nivel === 2 && plano) {
+        destruirPlano(plano);
+        plano = null;
+        plano1Cargado = false;
+    }
+
+
+    // PLANO 1
+    if (nivel === 1) {
+
+        // ya cargado
+        if (plano1Cargado) {
+            plano.visible = true;
+            planoActual = 1;
+            cargandoPlano = false;
+            return;
+        }
+
+        const inicioCarga = performance.now();
+
+        console.log("Cargando plano 1...");
+
+        loaderPlano.load(
+            './planoNodos-1.glb',
+            (gltf) => {
+
+                const finCarga = performance.now();
+
+                const tiempo =
+                    ((finCarga - inicioCarga) / 1000).toFixed(2);
+
+                console.log(
+                    `Plano 1 cargado en ${tiempo} segundos`
+                );
+
+                plano = gltf.scene;
+                scene.add(plano);
+
+                const box = new THREE.Box3().setFromObject(plano);
+                const center = box.getCenter(new THREE.Vector3());
+
+                plano.position.x -= center.x;
+                plano.position.y -= center.y;
+                plano.position.z -= center.z;
+
+                barreraEntrada = plano.getObjectByName("BarreraEntarda");
+                barreraSalida = plano.getObjectByName("BarreraSalida");
+                alarma = plano.getObjectByName("alarma");
+
+                interfonoEntrada = plano.getObjectByName("cocheEntrada");
+                interfonoSalida = plano.getObjectByName("cocheSalida");
+                interfonoCajero = plano.getObjectByName("persona");
+
+                interfonoCajero.visible = false;
+                interfonoEntrada.visible = false;
+                interfonoSalida.visible = false;
+
+                qClosed1.copy(barreraEntrada.quaternion);
+                qClosed2.copy(barreraSalida.quaternion);
+
+                const axis1 = new THREE.Vector3(-1, 0, 0);
+                const axis2 = new THREE.Vector3(1, 0, 0);
+
+                const offset1 = new THREE.Quaternion()
+                    .setFromAxisAngle(axis1, THREE.MathUtils.degToRad(75));
+
+                const offset2 = new THREE.Quaternion()
+                    .setFromAxisAngle(axis2, THREE.MathUtils.degToRad(75));
+
+                qOpen1.copy(qClosed1).multiply(offset1);
+                qOpen2.copy(qClosed2).multiply(offset2);
+
+                plano1Cargado = true;
+                planoActual = 1;
+                cargandoPlano = false;
+            });
+    }
+
+    // PLANO 2
+    if (nivel === 2) {
+
+        if (plano2Cargado) {
+            plano2.visible = true;
+            planoActual = 2;
+            cargandoPlano = false;
+            return;
+        }
+
+        const inicioCarga = performance.now();
+
+        console.log("Cargando plano 2...");
+
+        loaderPlano.load(
+
+            './planoNodos-2.glb',
+
+            (gltf) => {
+
+                const finCarga = performance.now();
+
+                const tiempo =
+                    ((finCarga - inicioCarga) / 1000).toFixed(2);
+
+                console.log(
+                    `Plano 2 cargado en ${tiempo} segundos`
+                );
+
+                plano2 = gltf.scene;
+                scene.add(plano2);
+
+                const box = new THREE.Box3().setFromObject(plano2);
+                const center = box.getCenter(new THREE.Vector3());
+
+                plano2.position.x -= center.x;
+                plano2.position.y -= center.y;
+                plano2.position.z -= center.z;
+
+                plano2.visible = true;
+
+                plano2Cargado = true;
+                planoActual = 2;
+                cargandoPlano = false;
+            });
+    } 
+
+    // actualizar barra superior
+    window.parent.postMessage({
+        type: "CAMBIO_NIVEL",
+        nivel: nivel
+    }, "*");
+}
+
+function destruirPlano(modelo) {
+
+        if (!modelo) return;
+
+        modelo.traverse((obj) => {
+
+            // geometría
+            if (obj.geometry) {
+                obj.geometry.dispose();
+            }
+
+            // materiales
+            if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach((mat) => {
+                        // texturas
+                        for (const key in mat) {
+                            const value = mat[key];
+                            if (value && value.isTexture) {
+                                value.dispose();
+                            }
+                        }
+                        mat.dispose();
+                    });
+                } else {
+                    for (const key in obj.material) {
+                        const value = obj.material[key];
+                        if (value && value.isTexture) {
+                            value.dispose();
+                        }
+                    }
+                    obj.material.dispose();
+                }
+            }
+        });
+    scene.remove(modelo);
+    modelo.clear();
+    renderer.renderLists.dispose();
+    console.log("Plano destruido");
+    console.log(renderer.info.memory);
+}
+
+
+
 document.getElementById("alarma").addEventListener("click", () => {
   valorAlarma = valorAlarma === 0 ? 1 : 0;
   console.log("Valor actual de la alarma:", valorAlarma);
@@ -87,31 +282,16 @@ window.addEventListener("message", (event) => {
     const data = event.data;
 
     if (data === "nivel1") {
-        if (plano) plano.visible = true;
-        if (plano2) plano2.visible = false;
+        cargarPlano(1);
     }
 
     if (data === "nivel2") {
-        if (plano) plano.visible = false;
-        if (plano2) plano2.visible = true;
+        cargarPlano(2);
     }
 });
 
 function setPlano(nivel) {
-    planoActual = nivel;
-
-    if (nivel === 1) {
-        if (plano) plano.visible = true;
-        if (plano2) plano2.visible = false;
-    }
-
-    if (nivel === 2) {
-        if (plano) plano.visible = false;
-        if (plano2) plano2.visible = true;
-    }
-
-    // Esto avisa a la barra superior que debe cambiar la imagen
-    window.parent.postMessage({ type: "CAMBIO_NIVEL", nivel: nivel }, "*");
+    cargarPlano(nivel);
 }
 
 // Escena
@@ -159,83 +339,6 @@ const qOpen1 = new THREE.Quaternion();
 const qClosed2 = new THREE.Quaternion();
 const qOpen2 = new THREE.Quaternion();
 
-loaderPlano.load(
-  './planoNodos-1.glb',
-  (gltf) => {
-
-    plano = gltf.scene;
-    scene.add(plano);
-
-    // centrar modelo
-    const box = new THREE.Box3().setFromObject(plano);
-    const center = box.getCenter(new THREE.Vector3());
-
-    plano.position.x -= center.x;
-    plano.position.y -= center.y;
-    plano.position.z -= center.z;
-
-    //nombre de nodos por consola
-    plano.traverse((obj) => {
-        console.log(obj.name, obj.type);
-    });
-
-    barreraEntrada = plano.getObjectByName("BarreraEntarda");
-    barreraSalida = plano.getObjectByName("BarreraSalida");
-    alarma = plano.getObjectByName("alarma");
-    interfonoEntrada = plano.getObjectByName("cocheEntrada");
-    interfonoSalida = plano.getObjectByName("cocheSalida");
-    interfonoCajero = plano.getObjectByName("persona");
-
-    //estado inicial de interfonos
-    interfonoCajero.visible = false;
-    interfonoEntrada.visible = false;
-    interfonoSalida.visible = false;
-
-    // estado cerrado entrada
-    qClosed1.copy(barreraEntrada.quaternion);
-    // estado cerrado salida
-    qClosed2.copy(barreraSalida.quaternion);
-
-    const axis1 = new THREE.Vector3(-1, 0, 0); // eje local der
-    const axis2 = new THREE.Vector3(1, 0, 0); // eje local izq
-
-
-    const offset1 = new THREE.Quaternion().setFromAxisAngle(
-        axis1,
-        THREE.MathUtils.degToRad(75)
-    );
-
-    const offset2 = new THREE.Quaternion().setFromAxisAngle(
-        axis2,
-        THREE.MathUtils.degToRad(75)
-    );
-
-
-    // estado abierto = cerrado + 75 grados
-    qOpen1.copy(qClosed1).multiply(offset1);
-    qOpen2.copy(qClosed2).multiply(offset2);
-  }
-);
-
-loaderPlano.load(
-  './planoNodos-2.glb',
-  (gltf) => {
-
-    plano2 = gltf.scene;
-    scene.add(plano2);
-
-    // centrar modelo
-    const box = new THREE.Box3().setFromObject(plano2);
-    const center = box.getCenter(new THREE.Vector3());
-
-    plano2.position.x -= center.x;
-    plano2.position.y -= center.y;
-    plano2.position.z -= center.z;
-
-    // oculto al iniciar
-    plano2.visible = false;
-});
-
 
 //camara inicial
 const cameraInitialTarget = new THREE.Vector3(0, 0, 0);
@@ -256,6 +359,7 @@ let modoSalidaActivo = false;
 let volviendoACamara = false;
 
 function activarCajero() {
+    cargarPlano(1);
     modoCajeroActivo = true;
     controls.enabled = false;
 }
@@ -266,6 +370,7 @@ function desactivarCajero() {
 }
 
 function activarEntrada() {
+    cargarPlano(1);
     modoEntradaActivo = true;
     controls.enabled = false;
 }
@@ -276,6 +381,7 @@ function desactivarEntrada() {
 }
 
 function activarSalida() {
+    cargarPlano(1);
     modoSalidaActivo = true;
     controls.enabled = false;
 }
@@ -297,7 +403,7 @@ function animate() {
             alarma.rotation.z += 0.06;
 
             if (alarmaAnterior === 0) {
-                setPlano(1);
+                cargarPlano(1);
             }
 
         } else {
@@ -345,9 +451,6 @@ function animate() {
 
         camera.position.lerp(camTargetPositionCajero, 0.05);
         camera.lookAt(interfonoCajero.position);
-
-        setPlano(1);
-
     } else if (volviendoACamara) {
         interfonoCajero.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);
@@ -371,9 +474,6 @@ function animate() {
 
         camera.position.lerp(camTargetPositionEntrada, 0.05);
         camera.lookAt(interfonoEntrada.position);
-
-        setPlano(1);
-
     } else if (volviendoACamara) {
         interfonoEntrada.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);
@@ -397,9 +497,6 @@ function animate() {
 
         camera.position.lerp(camTargetPositionSalida, 0.05);
         camera.lookAt(interfonoSalida.position);
-
-        setPlano(1);
-
     } else if (volviendoACamara) {
         interfonoSalida.visible = false;
         camera.position.lerp(cameraInitialPosition, 0.15);
