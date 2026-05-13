@@ -276,20 +276,6 @@ document.getElementById("InterfonoCajero").addEventListener("click", () => {
   }
 });
 
-let valorBoliviano = 0;
-
-document.getElementById("boliviano").addEventListener("click", () => {
-  valorBoliviano = valorBoliviano === 0 ? 1 : 0;
-
-  const popup = document.getElementById("popupBoliviano");
-
-  if (valorBoliviano === 1) {
-    popup.style.display = "flex";
-  } else {
-    popup.style.display = "none";
-  }
-});
-
 window.addEventListener("message", (event) => {
 
     const data = event.data;

@@ -37,16 +37,3 @@ html, body{
   align-items:center;
 }
 
-.fotoBoliviano {
-  width: 800px;
-  animation: girar 2s linear infinite;
-}
-
-@keyframes girar {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
