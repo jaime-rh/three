@@ -18,7 +18,6 @@ let planoActual = 1;
 
 let girandoHelicopter = false;
 let tHeli = 0;
-let valorAlarma = 0; 
 
 let plano1Cargado = false;
 let plano2Cargado = false;
@@ -213,7 +212,7 @@ function destruirPlano(modelo) {
     console.log(renderer.info.memory);
 }
 
-
+let valorAlarma = 0; 
 
 document.getElementById("alarma").addEventListener("click", () => {
   valorAlarma = valorAlarma === 0 ? 1 : 0;
@@ -274,6 +273,20 @@ document.getElementById("InterfonoCajero").addEventListener("click", () => {
       activarCajero();
   } else {
       desactivarCajero();
+  }
+});
+
+let valorBoliviano = 0;
+
+document.getElementById("boliviano").addEventListener("click", () => {
+  valorBoliviano = valorBoliviano === 0 ? 1 : 0;
+
+  const popup = document.getElementById("popupBoliviano");
+
+  if (valorBoliviano === 1) {
+    popup.style.display = "flex";
+  } else {
+    popup.style.display = "none";
   }
 });
 
